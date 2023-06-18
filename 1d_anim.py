@@ -2,7 +2,6 @@
 Animation of one dimensional (with regards to the spatial dimensions) waves
 that have a wave function of form f(x, t) = A*cos(k*x - w*t + delta)
 """
-import functools
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -27,8 +26,9 @@ def timer(f: Callable) -> Any:
     return wrapper
 
 
-def wavefun(x: np.ndarray, t: np.ndarray, amp: int | float, k: int | float,
-            w: int | float, delta: int | float) -> np.ndarray:
+def wavefun(x: int | float | np.ndarray, t: int | float | np.ndarray,
+            amp: int | float, k: int | float, w: int | float,
+            delta: int | float) -> np.ndarray:
     """
     :param x:
     :param t:
@@ -39,6 +39,21 @@ def wavefun(x: np.ndarray, t: np.ndarray, amp: int | float, k: int | float,
     :return:
     """
     return amp * np.cos(k * x - w * t + delta)
+
+
+def gaussian(x: int | float | np.ndarray, t: int | float | np.ndarray,
+             wlength: int | float, c: int | float) -> np.ndarray:
+    """
+    The real part of a wave packet taken straight from wikipedia:
+    https://en.wikipedia.org/wiki/Wave_packet
+    :param x:
+    :param t:
+    :param wlength:
+    :param c:
+    :return:
+    """
+    xx = 2 * np.pi * (x - c * t) / wlength
+    return np.exp(-np.power(x - c * t, 2)) * np.cos(xx)
 
 
 def _update_anim(n: int, lines: list[plt.Line2D], x: np.ndarray,
@@ -54,11 +69,12 @@ def _update_anim(n: int, lines: list[plt.Line2D], x: np.ndarray,
     for i, line in enumerate(lines):
         y = data[i, n, :]
         line.set_data(x, y)
+    plt.title(f'Time: {n}')
     return lines
 
 
 @timer
-def animate(*funcs: functools.partial,  x: np.ndarray, t: np.ndarray) -> None:
+def animate(*funcs: partial,  x: np.ndarray, t: np.ndarray) -> None:
     """
     :param funcs:
     :param x:
@@ -84,25 +100,26 @@ def animate(*funcs: functools.partial,  x: np.ndarray, t: np.ndarray) -> None:
     ax.set_ylim(np.min(data[-1]), np.max(data[-1]))
     anim = FuncAnimation(fig=fig, func=_update_anim, frames=len(t),
                          fargs=(lines, x, data), blit=True)
-    anim.save(filename='anim.gif', writer='pillow', fps=60, dpi=100)
+    anim.save(filename='1danim.gif', writer='pillow', fps=60, dpi=100)
 
 
-def main():
-    f = 5  # [1/s]
-    w = 2 * np.pi * f
-    wavelength = 2  # [m]
-    k = 2 * np.pi / wavelength
-    amp = 2
-    delta = 0
-    x = np.arange(0, 2 * np.pi, .01)
-    t = np.arange(0, 2 * np.pi, .005)
-    waves = []
-    for i in range(8):
-        n = 2 ** i
-        sign = 1 if i % 2 == 0 else -1
-        wave = partial(wavefun, amp=amp/n, k=k*n, w=n*w*sign, delta=delta)
-        waves.append(wave)
-    animate(*waves, x=x, t=t)
+def main() -> None:
+    f = 10  # Frequency [1/s]
+    w = 2 * np.pi * f  # Angular frequency [1/s]
+    wavelength = .5  # [m]
+    k = 2 * np.pi / wavelength  # Wave number
+    amp = 2  # Amplitude [m]
+    delta = 0  # Phase shift [rad]
+    x = np.arange(0, 2 * np.pi, .01)  # Spatial coordinates
+    t = np.arange(0, 2 * np.pi, .005)  # Temporal coordinates (timesteps)
+    # waves = []
+    # for i in range(8):
+    #     n = 2 ** i
+    #     sign = 1 if i % 2 == 0 else -1
+    #     wave = partial(wavefun, amp=amp/n, k=k*n, w=n*w*sign, delta=delta)
+    #     waves.append(wave)
+    wave = partial(gaussian, wlength=wavelength, c=(w / k))
+    animate(wave, x=x, t=t)
 
 
 if __name__ == '__main__':
