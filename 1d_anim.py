@@ -69,7 +69,7 @@ def _update_anim(n: int, lines: list[plt.Line2D], x: np.ndarray,
     for i, line in enumerate(lines):
         y = data[i, n, :]
         line.set_data(x, y)
-    plt.title(f'Time: {n}')
+    plt.title(f"Time: {n}")
     return lines
 
 
@@ -89,18 +89,18 @@ def animate(*funcs: partial,  x: np.ndarray, t: np.ndarray) -> None:
     data[-1, :, :] = np.sum(data, axis=0)
     fig, ax = plt.subplots(figsize=(10, 6))
     ax.grid()
-    colors = ['b', 'g', 'r', 'y', 'm']
+    colors = ["b", "g", "r", "y", "m"]
     alpha = .5
     # Lines for the individual waves
-    lines = [ax.plot([], [], c=colors[i % len(colors)], ls='--', alpha=alpha)[0]
+    lines = [ax.plot([], [], c=colors[i % len(colors)], ls="--", alpha=alpha)[0]
              for i in range(n)]
     # Line for the sum wave separately with different alpha and style
-    lines.append(ax.plot([], [], c='k')[0])
+    lines.append(ax.plot([], [], c="k")[0])
     ax.set_xlim(np.min(x), np.max(x))
     ax.set_ylim(np.min(data[-1]), np.max(data[-1]))
     anim = FuncAnimation(fig=fig, func=_update_anim, frames=len(t),
                          fargs=(lines, x, data), blit=True)
-    anim.save(filename='1danim.gif', writer='pillow', fps=60, dpi=100)
+    anim.save(filename="1danim.gif", writer="pillow", fps=60, dpi=100)
 
 
 def main() -> None:
@@ -122,5 +122,5 @@ def main() -> None:
     animate(wave, x=x, t=t)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
